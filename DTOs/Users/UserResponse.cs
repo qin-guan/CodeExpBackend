@@ -1,0 +1,10 @@
+﻿using System;
+
+namespace CodeExpBackend.DTOs.Users
+{
+    public class UserResponse
+    {
+        public Guid Id { get; set; }
+        public string Name { get; set; }
+    }
+}
