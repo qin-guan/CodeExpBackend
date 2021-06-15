@@ -13,5 +13,6 @@ namespace CodeExpBackend.DTOs.Questions
         
         // Mcq Question
         public IEnumerable<CreateMcqQuestionChoiceRequest> McqQuestionChoices { get; set; }
+        public int Points { get; set; }
     }
 }

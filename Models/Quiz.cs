@@ -7,6 +7,7 @@ namespace CodeExpBackend.Models
     {
         public Guid Id { get; set; }
         public string Name { get; set; }
+        public bool Live { get; set; }
 
         public Guid ClassroomId { get; set; }
         public Classroom Classroom { get; set; }

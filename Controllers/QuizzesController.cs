@@ -67,5 +67,29 @@ namespace CodeExpBackend.Controllers
                 return Problem();
             }
         }
+        
+        [HttpGet("{quizId:guid}/Toggle")]
+        public async Task<ActionResult> StartQuiz(
+            [FromRoute] Guid classroomId,
+            [FromRoute] Guid quizId
+        )
+        {
+            try
+            {
+                var quiz = await _dbContext.Quizzes.FindAsync(quizId);
+                if (quiz is null) return NotFound();
+
+                quiz.Live = !quiz.Live;
+                _dbContext.Update(quiz);
+                await _dbContext.SaveChangesAsync();
+
+                return Ok(_mapper.Map<QuizResponse>(quiz));
+            }
+            catch (Exception exception)
+            {
+                _logger.LogCritical(exception, "Fatal error while starting/stopping quiz");
+                return Problem();
+            }
+        }
     }
 }

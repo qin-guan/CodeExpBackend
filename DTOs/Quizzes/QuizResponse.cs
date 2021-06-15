@@ -6,5 +6,6 @@ namespace CodeExpBackend.DTOs.Quizzes
     {
         public Guid Id { get; set; }
         public string Name { get; set; }
+        public bool Live { get; set; }
     }
 }

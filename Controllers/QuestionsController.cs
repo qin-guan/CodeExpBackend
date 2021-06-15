@@ -59,18 +59,20 @@ namespace CodeExpBackend.Controllers
                 switch (createQuestionRequest.QuestionType)
                 {
                     case QuestionType.MultipleChoice:
-                        if (createQuestionRequest.McqQuestionChoices is null) return BadRequest();
+                        if (createQuestionRequest.McqQuestionChoices is null)
+                            return BadRequest();
 
                         var mcqQuestion = new McqQuestion
                         {
                             McqQuestionChoices =
                                 _mapper.Map<IEnumerable<McqQuestionChoice>>(createQuestionRequest.McqQuestionChoices),
                             QuizId = quizId,
-                            Title = createQuestionRequest.Title
+                            Title = createQuestionRequest.Title,
+                            Points = createQuestionRequest.Points
                         };
-                        
+
                         question = (await _dbContext.McqQuestions.AddAsync(mcqQuestion)).Entity;
-                        
+
                         break;
                     default:
                         return Problem();
