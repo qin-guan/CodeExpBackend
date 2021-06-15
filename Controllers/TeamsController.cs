@@ -54,14 +54,32 @@ namespace CodeExpBackend.Controllers
                 return Problem();
             }
         }
-
-        [HttpGet("{joinCode:int}")]
-        public async Task<ActionResult<TeamResponse>> JoinTeam(
-            [FromBody] Guid requestorId, [FromRoute] int joinCode)
+        
+        [HttpGet("{teamId:guid}")]
+        public async Task<ActionResult<TeamResponse>> ReadTeam(
+            [FromRoute] Guid teamId)
         {
             try
             {
-                var user = await _dbContext.Users.FindAsync(requestorId);
+                var team = await _dbContext.Teams.FindAsync(teamId);
+                if (team is null) return NotFound();
+                
+                return Ok(_mapper.Map<TeamResponse>(team));
+            }
+            catch (Exception exception)
+            {
+                _logger.LogCritical(exception, "Fatal error while reading team");
+                return Problem();
+            }
+        }
+
+        [HttpGet("{joinCode:int}")]
+        public async Task<ActionResult<TeamResponse>> JoinTeam(
+            [FromBody] JoinTeamRequest joinTeamRequest, [FromRoute] int joinCode)
+        {
+            try
+            {
+                var user = await _dbContext.Users.FindAsync(joinTeamRequest.RequestorId);
                 if (user is null) return NotFound();
 
                 var team = await _dbContext.Teams.Include(t => t.Users).SingleOrDefaultAsync(t => t.Code == joinCode);
