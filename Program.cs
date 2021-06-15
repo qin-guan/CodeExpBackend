@@ -13,7 +13,7 @@ namespace CodeExpBackend
         public static async Task Main(string[] args)
         {
             var host = CreateHostBuilder(args).Build();
-            
+
             using (var scope = host.Services.CreateScope())
             {
                 var services = scope.ServiceProvider;
@@ -30,14 +30,7 @@ namespace CodeExpBackend
             using var scope = host.Services.CreateScope();
             var services = scope.ServiceProvider;
             var context = services.GetRequiredService<ApplicationDbContext>();
-            if (env.IsDevelopment())
-            {
-                await context.Database.EnsureCreatedAsync();
-            }
-            else
-            {
-                await context.Database.MigrateAsync();
-            }
+            await context.Database.EnsureCreatedAsync();
         }
 
         public static IHostBuilder CreateHostBuilder(string[] args) =>
