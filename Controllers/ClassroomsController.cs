@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
@@ -30,7 +31,7 @@ namespace CodeExpBackend.Controllers
 
         [HttpGet]
         public async Task<ActionResult<IEnumerable<ClassroomResponse>>> ReadClassrooms(
-            [FromQuery] Guid userId
+            [FromQuery] [Required] Guid userId
         )
         {
             try
@@ -71,7 +72,12 @@ namespace CodeExpBackend.Controllers
                 classroom = (await _dbContext.Classrooms.AddAsync(classroom)).Entity;
                 await _dbContext.SaveChangesAsync();
 
-                return Ok(_mapper.Map<ClassroomResponse>(classroom));
+                return Ok(new ClassroomResponse
+                {
+                    Id = classroom.Id,
+                    Name = classroom.Name,
+                    IsAdmin = true
+                });
             }
             catch (Exception exception)
             {
