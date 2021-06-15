@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
@@ -6,6 +7,7 @@ using CodeExpBackend.Data;
 using CodeExpBackend.DTOs.Users;
 using CodeExpBackend.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 namespace CodeExpBackend.Controllers
@@ -23,6 +25,21 @@ namespace CodeExpBackend.Controllers
             _dbContext = dbContext;
             _mapper = mapper;
             _logger = logger;
+        }
+
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<UserResponse>>> ReadUsers()
+        {
+            try
+            {
+                var users = await _dbContext.Users.ToListAsync();
+                return Ok(_mapper.Map<IEnumerable<UserResponse>>(users));
+            }
+            catch (Exception exception)
+            {
+                _logger.LogCritical(exception, "Fatal error while reading users");
+                return Problem();
+            }
         }
 
         [HttpGet("{userId:guid}")]

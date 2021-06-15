@@ -7,6 +7,7 @@ namespace CodeExpBackend.Models
     {
         public Guid Id { get; set; }
         public string Name { get; set; }
+        public int Points { get; set; }
 
         public List<Classroom> AdminClassrooms { get; set; }
         public ICollection<Classroom> Classrooms { get; set; }
