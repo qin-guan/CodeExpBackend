@@ -56,6 +56,35 @@ namespace CodeExpBackend.Controllers
             }
         }
 
+        [HttpGet("{classroomId:guid}")]
+        public async Task<ActionResult<ClassroomResponse>> ReadClassroom(
+            [FromQuery] [Required] Guid userId,
+            [FromRoute] Guid classroomId
+        )
+        {
+            try
+            {
+                var user = await _dbContext.Users.Include(u => u.Classrooms).Where(u => u.Id == userId)
+                    .SingleOrDefaultAsync();
+                if (user == default(User)) return NotFound();
+
+                var classroom = user.Classrooms.SingleOrDefault(c => c.Id == classroomId);
+                if (classroom == default(Classroom)) return NotFound();
+
+                return Ok(new ClassroomResponse
+                {
+                    Id = classroom.Id,
+                    Name = classroom.Name,
+                    IsAdmin = classroom.AdminUserId == userId
+                });
+            }
+            catch (Exception exception)
+            {
+                _logger.LogCritical(exception, "Fatal error while reading classrooms");
+                return Problem();
+            }
+        }
+
         [HttpPost]
         public async Task<ActionResult<ClassroomResponse>> CreateClassroom(
             [FromBody] CreateClassroomRequest createClassroomRequest)
