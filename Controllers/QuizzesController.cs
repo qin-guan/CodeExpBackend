@@ -91,5 +91,65 @@ namespace CodeExpBackend.Controllers
                 return Problem();
             }
         }
+        
+        [HttpPost("{quizId:guid}/Attempt")]
+        public async Task<ActionResult<int>> AttemptQuiz(
+            [FromRoute] Guid classroomId,
+            [FromRoute] Guid quizId,
+            [FromBody] AttemptQuizRequest attemptQuizRequest
+        )
+        {
+            try
+            {
+                var user = await _dbContext.Users.Include(u => u.Team).SingleOrDefaultAsync(u => u.Id == attemptQuizRequest.RequestorId);
+                if (user is null) return NotFound();
+                
+                var points = 0;
+                
+                var mcqs = await _dbContext.McqQuestions.Where(q => q.QuizId == quizId).Include(c => c.McqQuestionChoices).ToListAsync();
+                mcqs.ForEach(mcq =>
+                {
+                    var choices = mcq.McqQuestionChoices.Where(c => c.IsAnswer).Select(c => c.Id);
+                    if (choices.All(c => attemptQuizRequest.QuestionAttempts.Any(a => a.ChoiceId == c)))
+                    {
+                        points += mcq.Points;
+                    }
+                });
+
+                var shortAns = await _dbContext.ShortAnswerQuestions.Where(q => q.QuizId == quizId).ToListAsync();
+                shortAns.ForEach(q =>
+                {
+                    var attempt = attemptQuizRequest.QuestionAttempts.SingleOrDefault(a => a.QuestionId == q.Id);
+                    if (attempt == default(QuestionAttemptRequest)) return;
+                    
+                    if (attempt.Answer == q.Answer) points += q.Points;
+                });
+                
+                var openEnded = await _dbContext.OpenEndedQuestions.Where(q => q.QuizId == quizId).ToListAsync();
+                openEnded.ForEach(q =>
+                {
+                    var attempt = attemptQuizRequest.QuestionAttempts.SingleOrDefault(a => a.QuestionId == q.Id);
+                    if (attempt == default(QuestionAttemptRequest)) return;
+                    
+                    if (attempt.Answer == q.Answer) points += q.Points;
+                });
+
+                user.Points += points;
+                
+                if (user.Team is not null)
+                {
+                    user.Team.Points += points;
+                }
+                _dbContext.Users.Update(user);
+                await _dbContext.SaveChangesAsync();
+
+                return Ok(points);
+            }
+            catch (Exception exception)
+            {
+                _logger.LogCritical(exception, "Fatal error while attempting quiz");
+                return Problem();
+            }
+        }
     }
 }

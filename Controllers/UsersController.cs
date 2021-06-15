@@ -58,16 +58,34 @@ namespace CodeExpBackend.Controllers
                 return Problem();
             }
         }
+        
+        [HttpGet("Leaderboard")]
+        public async Task<ActionResult<IEnumerable<UserResponse>>> ReadUsersLeaderboard()
+        {
+            try
+            {
+                var users = await _dbContext.Users.OrderByDescending(u => u.Points).Take(3).ToListAsync();
+                return Ok(_mapper.Map<IEnumerable<UserResponse>>(users));
+            }
+            catch (Exception exception)
+            {
+                _logger.LogCritical(exception, "Fatal error while reading user leaderboard");
+                return Problem();
+            }
+        }
 
         [HttpPost]
         public async Task<ActionResult<Guid>> CreateUser([FromBody] CreateUserRequest createUserRequest)
         {
             try
             {
-                var user = await _dbContext.Users.AddAsync(new User(createUserRequest.Name));
+                var user = await _dbContext.Users.SingleOrDefaultAsync(u => u.Name == createUserRequest.Name);
+                if (user != default(User)) return Ok(_mapper.Map<UserResponse>(user));
+                
+                var newUser = await _dbContext.Users.AddAsync(new User(createUserRequest.Name));
                 await _dbContext.SaveChangesAsync();
 
-                return Ok(_mapper.Map<UserResponse>(user.Entity));
+                return Ok(_mapper.Map<UserResponse>(newUser.Entity));
             }
             catch (Exception exception)
             {

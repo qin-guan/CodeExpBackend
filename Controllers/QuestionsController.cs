@@ -37,7 +37,24 @@ namespace CodeExpBackend.Controllers
             try
             {
                 var questions = await _dbContext.Questions.Where(q => q.QuizId == quizId).ToListAsync();
-                return Ok(_mapper.Map<IEnumerable<QuestionResponse>>(questions));
+
+                return Ok(questions.Select(q =>
+                {
+                    QuestionType questionType;
+
+                    if (q.GetType() == typeof(McqQuestion)) questionType = QuestionType.MultipleChoice;
+                    else if (q.GetType() == typeof(OpenEndedQuestion)) questionType = QuestionType.OpenEnded;
+                    else if (q.GetType() == typeof(ShortAnswerQuestion)) questionType = QuestionType.ShortAnswer;
+                    else if (q.GetType() == typeof(InfoSlideQuestion)) questionType = QuestionType.Info;
+                    else throw new Exception();
+
+                    return new QuestionResponse
+                    {
+                        Id = q.Id,
+                        Title = q.Title,
+                        QuestionType = questionType
+                    };
+                }));
             }
             catch (Exception exception)
             {
@@ -64,22 +81,71 @@ namespace CodeExpBackend.Controllers
 
                         var mcqQuestion = new McqQuestion
                         {
-                            McqQuestionChoices =
-                                _mapper.Map<IEnumerable<McqQuestionChoice>>(createQuestionRequest.McqQuestionChoices),
                             QuizId = quizId,
                             Title = createQuestionRequest.Title,
-                            Points = createQuestionRequest.Points
+                            Points = createQuestionRequest.Points,
+
+                            McqQuestionChoices =
+                                _mapper.Map<IEnumerable<McqQuestionChoice>>(createQuestionRequest.McqQuestionChoices),
                         };
 
                         question = (await _dbContext.McqQuestions.AddAsync(mcqQuestion)).Entity;
 
                         break;
+                    case QuestionType.ShortAnswer:
+                        var shortAnswer = new ShortAnswerQuestion
+                        {
+                            QuizId = quizId,
+                            Title = createQuestionRequest.Title,
+                            Points = createQuestionRequest.Points,
+
+                            Answer = createQuestionRequest.Answer,
+                            OneWordOnly = createQuestionRequest.OneWordOnly,
+                            NumbersOnly = createQuestionRequest.NumbersOnly,
+                        };
+
+                        question = (await _dbContext.ShortAnswerQuestions.AddAsync(shortAnswer)).Entity;
+
+                        break;
+                    case QuestionType.OpenEnded:
+                        var openEnded = new OpenEndedQuestion
+                        {
+                            QuizId = quizId,
+                            Title = createQuestionRequest.Title,
+                            Points = createQuestionRequest.Points,
+
+                            Answer = createQuestionRequest.Answer,
+                            PhotoOnly = createQuestionRequest.PhotoOnly,
+                            NumbersOnly = createQuestionRequest.NumbersOnly,
+                            MinWordRequirement = createQuestionRequest.MinWordRequirement,
+                        };
+
+                        question = (await _dbContext.OpenEndedQuestions.AddAsync(openEnded)).Entity;
+
+                        break;
+                    case QuestionType.Info:
+                        var info = new InfoSlideQuestion
+                        {
+                            QuizId = quizId,
+                            Title = createQuestionRequest.Title,
+
+                            Text = createQuestionRequest.Text
+                        };
+
+                        question = (await _dbContext.InfoSlideQuestions.AddAsync(info)).Entity;
+
+                        break;
                     default:
-                        return Problem();
+                        return BadRequest();
                 }
 
                 await _dbContext.SaveChangesAsync();
-                return Ok(_mapper.Map<QuestionResponse>(question));
+                return Ok(new QuestionResponse
+                {
+                    Id = question.Id,
+                    Title = question.Title,
+                    QuestionType = createQuestionRequest.QuestionType
+                });
             }
             catch (Exception exception)
             {

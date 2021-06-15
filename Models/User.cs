@@ -9,6 +9,8 @@ namespace CodeExpBackend.Models
         public string Name { get; set; }
         public int Points { get; set; }
 
+        public Guid? TeamId { get; set; }
+        public Team Team { get; set; }
         public List<Classroom> AdminClassrooms { get; set; }
         public ICollection<Classroom> Classrooms { get; set; }
 

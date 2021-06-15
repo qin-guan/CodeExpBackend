@@ -27,6 +27,10 @@ namespace CodeExpBackend.Data
         public DbSet<Quiz> Quizzes { get; set; }
         public DbSet<Question> Questions { get; set; }
         public DbSet<McqQuestion> McqQuestions { get; set; }
+        public DbSet<ShortAnswerQuestion> ShortAnswerQuestions { get; set; }
+        public DbSet<OpenEndedQuestion> OpenEndedQuestions { get; set; }
+        public DbSet<InfoSlideQuestion> InfoSlideQuestions { get; set; }
         public DbSet<User> Users { get; set; }
+        public DbSet<Team> Teams { get; set; }
     }
 }
