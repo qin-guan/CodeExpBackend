@@ -25,6 +25,23 @@ namespace CodeExpBackend.Controllers
             _logger = logger;
         }
 
+        [HttpGet("{userId:guid}")]
+        public async Task<ActionResult<UserResponse>> ReadUser([FromRoute] Guid userId)
+        {
+            try
+            {
+                var user = await _dbContext.Users.FindAsync(userId);
+                if (user is null) return NotFound();
+
+                return Ok(_mapper.Map<UserResponse>(user));
+            }
+            catch (Exception exception)
+            {
+                _logger.LogCritical(exception, "Fatal error while reading user");
+                return Problem();
+            }
+        }
+
         [HttpPost]
         public async Task<ActionResult<Guid>> CreateUser([FromBody] CreateUserRequest createUserRequest)
         {
