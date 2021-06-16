@@ -63,6 +63,33 @@ namespace CodeExpBackend.Controllers
             }
         }
 
+        [HttpGet("{questionId:guid}")]
+        public async Task<ActionResult<QuestionResponse>> ReadQuestion(
+            [FromRoute] Guid classroomId,
+            [FromRoute] Guid quizId,
+            [FromRoute] Guid questionId
+        )
+        {
+            try
+            {
+                var question = await _dbContext.Questions.OfType<McqQuestion>().Include(q => q.McqQuestionChoices)
+                    .SingleOrDefaultAsync(q => q.Id == questionId);
+                if (question is null) return NotFound();
+
+                return Ok(new QuestionResponse 
+                {
+                    Id = questionId,
+                    Title = question.Title,
+                    McqChoices = _mapper.Map<IEnumerable<McqChoiceResponse>>(question.McqQuestionChoices),
+                });
+            }
+            catch (Exception exception)
+            {
+                _logger.LogCritical(exception, "Fatal error while reading questions");
+                return Problem();
+            }
+        }
+
         [HttpPost]
         public async Task<ActionResult<QuestionResponse>> CreateQuestion(
             [FromRoute] Guid classroomId,

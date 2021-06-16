@@ -10,6 +10,8 @@ namespace CodeExpBackend.Profiles
         {
             CreateMap<Question, QuestionResponse>();
             CreateMap<CreateMcqQuestionChoiceRequest, McqQuestionChoice>();
+            CreateMap<Question, CreateQuestionRequest>();
+            CreateMap<McqQuestionChoice, McqChoiceResponse>();
         }
     }
 }
